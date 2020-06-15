@@ -4,7 +4,8 @@ const puppeteer = require('puppeteer');
 async function requestOnce(page) {
   await page.type('#receiver', process.env.WALLET_ADDRESS, 60);
   // 谷歌人机校验
-  const frame = await page.frames().find(f => f.getAttribute('role') === 'presentation');
+  const frames = await page.frames()
+  const frame = frames.find(f => f.name() === 'Goerli Testnet Faucet');
   if (frame) {
     const checkbox = await frame.$('.recaptcha-checkbox');
     await checkbox.click({ delay: 22 });
@@ -21,14 +22,18 @@ async function requestOnce(page) {
 }
 
 (async () => {
-  const { WALLET_ADDRESS, MAX_TIMES = 10 } = process.env;
-  if (!WALLET_ADDRESS) throw new Error('Environment variables \'WALLET_ADDRESS\' must be set.')
-  const browser = await puppeteer.launch();
-  const page = await browser.newPage();
-  await page.goto('https://goerli-faucet.slock.it/');
-  for (let i = 0; i < MAX_TIMES; i++) {
-    await requestOnce(page)
+  try {
+    const { WALLET_ADDRESS, MAX_TIMES = 10 } = process.env;
+    if (!WALLET_ADDRESS) throw new Error('Environment variables \'WALLET_ADDRESS\' must be set.')
+    const browser = await puppeteer.launch({ headless: false });
+    const page = await browser.newPage();
+    await page.goto('https://goerli-faucet.slock.it/');
+    for (let i = 0; i < MAX_TIMES; i++) {
+      await requestOnce(page)
+    }
+    // 关闭
+    await browser.close();
+  } catch (error) {
+    console.error(error)
   }
-  // 关闭
-  await browser.close();
 })();
