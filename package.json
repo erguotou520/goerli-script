@@ -1,0 +1,13 @@
+{
+  "name": "goerli-script",
+  "version": "0.0.1",
+  "description": "auto get goerli eth",
+  "main": "index.js",
+  "repository": "git@github.com:erguotou520/goerli-script.git",
+  "author": "erguotou525@gmail.com",
+  "license": "MIT",
+  "private": false,
+  "dependencies": {
+    "puppeteer": "^1.11.0"
+  }
+}
