@@ -2,5 +2,5 @@ language: node_js
 node_js: "node"
 script:
   # - node index.js
-  - node ssru.js
+  - node index.js
 cache: yarn
