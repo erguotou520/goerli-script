@@ -4,10 +4,23 @@ const puppeteer = require('puppeteer-extra')
 const pluginStealth = require('puppeteer-extra-plugin-stealth')
 puppeteer.use(pluginStealth())
 
+// 随机时间
 function rdn (min, max) {
   min = Math.ceil(min)
   max = Math.floor(max)
   return Math.floor(Math.random() * (max - min)) + min
+}
+
+// 让鼠标随机移动到某一个点
+async function moveMouseTo(x1, y1, x2, y2) {
+  if (((x2 - x1)**2 + (y2 - y1)**2) < 10) {
+    await paeg.mouse.move(x2, y2)
+  } else {
+    const targetX = rdn(x1, x2)
+    const targetY = rdn(y1, y2)
+    await page.mouse.move(targetX, targetY)
+    moveMouseTo(targetX, targetY, x2, y2)
+  }
 }
 
 // 请求一次
@@ -39,19 +52,21 @@ async function requestOnce(page) {
     await page.type('#receiver', process.env.WALLET_ADDRESS, 60);
     
     // await frame.waitForSelector('.recaptcha-checkbox')
-    // await page.waitFor(Math.random() * 1200)
+    // await page.waitFor(rdn(1000, 2000))
     const checkbox = await frame.$('#recaptcha-anchor');
+    const checkboxPos = await checkbox.boundingBox();
+    await moveMouseTo(rdn(30, 100), rdn(30, 100), checkboxPos.x, checkboxPos.y);
     await checkbox.click({ delay: rdn(30, 150) });
 
     // 等待被选中
     await frame.waitForSelector('.recaptcha-checkbox-checked', { timeout: 3000 })
-    await page.waitFor(Math.random() * 2000)
+    await page.waitFor(rdn(1500, 2500))
     // 点击request按钮
     await page.click('#requestTokens', { delay: 50 })
     await page.waitForSelector('.swal2-container.swal2-shown', { timeout: 3000 })
     // 点击ok
     await page.click('.swal2-confirm', { delay: 32 })
-    await page.waitFor(Math.random() * 3239);
+    await page.waitFor(rdn(3000, 4000));
   }
 }
 
