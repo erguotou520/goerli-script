@@ -1,8 +1,8 @@
 // 参考自 https://github.com/danielgatis/puppeteer-recaptcha-solver/blob/master/index.js
-// const puppeteer = require('puppeteer');
-const puppeteer = require('puppeteer-extra')
-const pluginStealth = require('puppeteer-extra-plugin-stealth')
-puppeteer.use(pluginStealth())
+const puppeteer = require('puppeteer');
+// const puppeteer = require('puppeteer-extra')
+// const pluginStealth = require('puppeteer-extra-plugin-stealth')
+// puppeteer.use(pluginStealth())
 
 // 随机时间
 function rdn (min, max) {
@@ -12,14 +12,16 @@ function rdn (min, max) {
 }
 
 // 让鼠标随机移动到某一个点
-async function moveMouseTo(x1, y1, x2, y2) {
+async function moveMouseTo(page, x1, y1, x2, y2) {
+  console.log(x1, x2, y1, y2)
   if (((x2 - x1)**2 + (y2 - y1)**2) < 10) {
-    await paeg.mouse.move(x2, y2)
+    await page.mouse.move(x2, y2)
   } else {
     const targetX = rdn(x1, x2)
     const targetY = rdn(y1, y2)
+    await page.waitFor(rdn(200, 300))
     await page.mouse.move(targetX, targetY)
-    moveMouseTo(targetX, targetY, x2, y2)
+    await moveMouseTo(page, targetX, targetY, x2, y2)
   }
 }
 
@@ -55,7 +57,7 @@ async function requestOnce(page) {
     // await page.waitFor(rdn(1000, 2000))
     const checkbox = await frame.$('#recaptcha-anchor');
     const checkboxPos = await checkbox.boundingBox();
-    await moveMouseTo(rdn(30, 100), rdn(30, 100), checkboxPos.x, checkboxPos.y);
+    await moveMouseTo(page, rdn(30, 100), rdn(30, 100), checkboxPos.x, checkboxPos.y);
     await checkbox.click({ delay: rdn(30, 150) });
 
     // 等待被选中
@@ -85,7 +87,7 @@ async function requestOnce(page) {
     const [page] = await browser.pages();
     page.setDefaultTimeout(0);
 
-    // await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
+    await page.setUserAgent('Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 (KHTML, like Gecko) Chrome/78.0.3904.108 Safari/537.36');
     await page.goto('https://goerli-faucet.slock.it/');
     
     for (let i = 0; i < MAX_TIMES; i++) {
